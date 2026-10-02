@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project Pulse Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header" aria-labelledby="page-title">
+      <p class="eyebrow">Contributor workspace</p>
+      <h1 id="page-title">Project Pulse</h1>
+      <p class="intro">
+        A quick, contributor-friendly view of active projects, ownership, status,
+        recent movement, and priorities.
+      </p>
+    </header>
+
+    <main>
+      <section class="dashboard-section" aria-labelledby="dashboard-title">
+        <div class="section-heading">
+          <h2 id="dashboard-title">Current project health</h2>
+          <p id="dashboard-description">
+            Review each project card to find where your contribution can help next.
+          </p>
+        </div>
+
+        <div
+          id="dashboard-status"
+          class="dashboard-message"
+          role="status"
+          aria-live="polite"
+        >
+          Loading project pulse data…
+        </div>
+
+        <div
+          id="dashboard"
+          class="dashboard"
+          aria-describedby="dashboard-description"
+        ></div>
+      </section>
+    </main>
+
+    <noscript>
+      <p class="dashboard-message" role="alert">
+        Project Pulse needs JavaScript enabled to load project-data.json.
+      </p>
+    </noscript>
+
+    <script>
+      const dashboard = document.querySelector("#dashboard");
+      const dashboardStatus = document.querySelector("#dashboard-status");
+
+      const badgeClassValue = (value) =>
+        String(value || "")
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "") || "unknown";
+
+      const createTextElement = (tagName, className, text) => {
+        const element = document.createElement(tagName);
+        if (className) {
+          element.className = className;
+        }
+        element.textContent = text;
+        return element;
+      };
+
+      const createBadge = (label, value, baseClassName) => {
+        const badge = createTextElement(
+          "span",
+          `${baseClassName} ${baseClassName}--${badgeClassValue(value)}`,
+          value
+        );
+        badge.setAttribute("aria-label", `${label}: ${value}`);
+        return badge;
+      };
+
+      const appendDetail = (list, label, value) => {
+        const item = document.createElement("div");
+        item.className = "project-detail";
+
+        const term = createTextElement("dt", "project-detail__label", label);
+        const description = createTextElement(
+          "dd",
+          "project-detail__value",
+          value
+        );
+
+        item.append(term, description);
+        list.appendChild(item);
+      };
+
+      const normalizeProject = (project) => ({
+        name: String(project.name || "Unnamed project"),
+        owner: String(project.owner || "Unassigned"),
+        status: String(project.status || "Unknown"),
+        recentActivity: String(project.recentActivity || "No recent activity recorded."),
+        priority: String(project.priority || "Unprioritized"),
+        summary: String(project.summary || "A project ready for contributor support.")
+      });
+
+      const renderProjects = (projects) => {
+        dashboard.textContent = "";
+
+        if (!projects.length) {
+          dashboardStatus.textContent =
+            "No projects are listed yet. Add projects to project-data.json to populate the dashboard.";
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        projects.map(normalizeProject).forEach((project, index) => {
+          const titleId = `${badgeClassValue(project.name)}-${index + 1}-title`;
+          const article = document.createElement("article");
+          article.className = "project-card";
+          article.setAttribute("aria-labelledby", titleId);
+
+          const header = document.createElement("header");
+          header.className = "project-card__header";
+
+          const title = createTextElement("h3", "project-card__title", project.name);
+          title.id = titleId;
+
+          const badges = document.createElement("div");
+          badges.className = "project-card__badges";
+          badges.setAttribute("aria-label", "Project status and priority");
+          badges.append(
+            createBadge("Status", project.status, "status-badge"),
+            createBadge("Priority", project.priority, "priority-badge")
+          );
+
+          header.append(title, badges);
+
+          const summary = createTextElement(
+            "p",
+            "project-card__summary",
+            project.summary
+          );
+
+          const details = document.createElement("dl");
+          details.className = "project-card__details";
+          appendDetail(details, "Owner", project.owner);
+          appendDetail(details, "Status", project.status);
+          appendDetail(details, "Recent activity", project.recentActivity);
+          appendDetail(details, "Priority", project.priority);
+
+          article.append(header, summary, details);
+          fragment.appendChild(article);
+        });
+
+        dashboard.appendChild(fragment);
+        dashboardStatus.textContent = `${projects.length} project${projects.length === 1 ? "" : "s"} loaded.`;
+      };
+
+      const showError = (error) => {
+        dashboard.textContent = "";
+        dashboardStatus.setAttribute("role", "alert");
+        dashboardStatus.textContent =
+          "Project Pulse could not load project-data.json. Check that the file exists and contains a top-level projects array.";
+        console.error("Project Pulse data error:", error);
+      };
+
+      fetch("project-data.json", { cache: "no-store" })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`Data request failed with ${response.status}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          if (!data || !Array.isArray(data.projects)) {
+            throw new Error("Expected project-data.json to contain a projects array.");
+          }
+          renderProjects(data.projects);
+        })
+        .catch(showError);
+    </script>
+  </body>
+</html>

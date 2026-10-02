@@ -1,0 +1,36 @@
+{
+  "projects": [
+    {
+      "name": "Contributor Onboarding Refresh",
+      "owner": "Mona",
+      "status": "Active",
+      "recentActivity": "Updated first-issue labels and merged the quick-start checklist.",
+      "priority": "High",
+      "summary": "Help new contributors find a clear first task and understand how to ship their first pull request."
+    },
+    {
+      "name": "Docs Search Improvements",
+      "owner": "Riley",
+      "status": "In Review",
+      "recentActivity": "Prototype search filters are ready for accessibility review.",
+      "priority": "Medium",
+      "summary": "Improve documentation discovery so contributors can quickly find setup, testing, and release guidance."
+    },
+    {
+      "name": "Release Readiness Tracker",
+      "owner": "Avery",
+      "status": "At Risk",
+      "recentActivity": "Dependency audit found two blockers that need triage before release candidate testing.",
+      "priority": "Critical",
+      "summary": "Coordinate release blockers, validation tasks, and owner follow-ups in one easy-to-scan project stream."
+    },
+    {
+      "name": "Community Feedback Loop",
+      "owner": "Sam",
+      "status": "Planning",
+      "recentActivity": "Collected survey themes and drafted the first discussion prompts.",
+      "priority": "Low",
+      "summary": "Turn contributor feedback into approachable follow-up issues for maintainers and community members."
+    }
+  ]
+}
